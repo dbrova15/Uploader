@@ -38,11 +38,11 @@ class Uploader(object):
         print(1)
 
     def is_active(self):
-        return self.done
-        # if self.done:
-        #     return False
-        # else:
-        #     return True
+        # return self.done
+        if self.done:
+            return False
+        else:
+            return True
 
 
 if __name__ == '__main__':
