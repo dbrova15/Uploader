@@ -20,13 +20,13 @@ class Uploader(object):
 
         except Exception as e:
             print(e)
-            self.error += 1
+            self.error += 1 #todo не меняеться значение
         finally:
             # print("finally", self.total)
-            self.total = self.total + 1
+            self.total = self.total + 1 #todo не меняеться значение
 
         if self.total >= len(self.file_list):
-            self.done = True
+            self.done = True  #todo не меняеться значение
 
     def _upload_pool(self):
         pool = ThreadPool(processes=self.n_treads)
