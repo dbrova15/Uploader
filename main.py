@@ -64,13 +64,11 @@ class Uploader(object):
             print(e)
             # progress["error"] = + 1
             # progress.error =+ 1
-            self.error += 1 #todo не меняеться значение
             self.q.put("Error! File {} is not loaded.".format(file))
         finally:
             # print("finally", self.total)
             # progress["total"] = + 1
             # progress.total = + 1
-            self.total = self.total + 1  # todo не меняеться значение
             self.q.put("Success! File {} is uploaded to the server.".format(file))
 
         # if progress.n_files > 0:
@@ -87,7 +85,6 @@ class Uploader(object):
 
         # self.q.put(progress)
         # if self.total >= len(self.file_list):
-        #     self.done = True  #todo не меняеться значение
         # progress =
         # self.q.put((self.error, self.total))
 
