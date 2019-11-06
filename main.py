@@ -1,9 +1,20 @@
 from __future__ import annotations
 import os
 import time
-from multiprocessing import Pool as ThreadPool, Process, Manager, Value
+from multiprocessing.dummy import Pool as ThreadPool, Process, Manager, Value
 
 from typing import Optional
+
+
+def init_globals(done_v, error_v, total_v, n_files_v):
+    global done
+    global error
+    global total
+    global n_files
+    done = done_v
+    error = error_v
+    total = total_v
+    n_files = n_files_v
 
 #
 # class Progress:
@@ -31,8 +42,9 @@ class Progress(metaclass=SingletonMeta):
 
 
 class Uploader(object):
-    def __init__(self, file_list, n_treads, q):
 
+    def __init__(self, file_list, n_treads, q):
+        self.is_active = True
         # self.n_file = Value("i", len(file_list))
         # self.error = Value("i", 0)
         # self.total = Value("i", 0)
@@ -46,6 +58,16 @@ class Uploader(object):
         # progress = Progress()
         # q.put(progress) #{"done": self.done, "error": self.error, "total": self.total, "n_files": len(file_list)})
         self.q = q
+
+    # def _init_globals(self, done_v, error_v, total_v, n_files_v):
+    #     global done
+    #     global error
+    #     global total
+    #     global n_files
+    #     done = done_v
+    #     error = error_v
+    #     total = total_v
+    #     n_files = n_files_v
 
     def _upload_file(self, file):
         # progress = self.q.get()
@@ -64,11 +86,13 @@ class Uploader(object):
             print(e)
             # progress["error"] = + 1
             # progress.error =+ 1
+            # self.error =+ 1
             self.q.put("Error! File {} is not loaded.".format(file))
         finally:
             # print("finally", self.total)
             # progress["total"] = + 1
             # progress.total = + 1
+            # self.total =+ 1
             self.q.put("Success! File {} is uploaded to the server.".format(file))
 
         # if progress.n_files > 0:
@@ -87,23 +111,40 @@ class Uploader(object):
         # if self.total >= len(self.file_list):
         # progress =
         # self.q.put((self.error, self.total))
+        # print(self.error, self.total)
+        return "done"
 
     def _upload_pool(self):
         pool = ThreadPool(processes=self.n_treads)
-        pool.map(self._upload_file, self.file_list)
+        res = pool.map(self._upload_file, self.file_list)
+
+        # print("\ndone")
+        self.is_active = False
+        # with ThreadPool(initializer=self._init_globals, initargs=(self.done, self.error,
+        #                                                                                self.total, self.n_file)) as pool:
+        #     pool.map(self._upload_file, self.file_list)
+
+        # while pool.i:
+        #     pass
+        # self.done = False
 
     def start(self):
         proc = Process(target=self._upload_pool)
         proc.start()
-        # print(1)
 
-    def is_active(self):
-        # return self.done
+
+
+    # def is_active(self):
+    #     # return self.done
+    #     if self.done:
+    #         return False
+    #     else:
+    #         return True
         # print("is_active", self.done)
-        if self.done:
-            return False
-        else:
-            return True
+        # if self.proc.join():
+        #     return False
+        # else:
+        #     return True
 
 
 if __name__ == '__main__':
@@ -114,7 +155,7 @@ if __name__ == '__main__':
     uploader = Uploader(files_list, 2, q)
     uploader.start()
 
-    while uploader.is_active():
+    while uploader.is_active:
         progress = q.get()
         # print(uploader.is_active())
         print(progress)
