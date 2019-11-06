@@ -1,14 +1,16 @@
 import os
 import time
+from collections import Counter
 from multiprocessing.dummy import Pool as ThreadPool, Process, Manager
 
 
 class Uploader(object):
 
     def __init__(self, file_list, n_treads, q):
-        assert file_list is not list
-        assert n_treads is not int
-        assert n_treads <= 0
+        assert isinstance(file_list, (list, tuple))
+        assert isinstance(n_treads, int)
+        assert n_treads >= 0
+        assert type(q) is Manager().Queue
 
         self.is_active = True
         self.file_list = file_list
@@ -21,16 +23,20 @@ class Uploader(object):
             time.sleep(2)
 
         except Exception as e:
-            print(e)
-            self.q.put("Error! File {} is not loaded.".format(file))
+            self.q.put("Error! File {} is not loaded.\n{}".format(file, e))
+            return False
         finally:
             self.q.put("Success! File {} is uploaded to the server.".format(file))
-        return "done"
+            return True
+        # return "done"
 
     def _upload_pool(self):
         pool = ThreadPool(processes=self.n_treads)
         res = pool.map(self._upload_file, self.file_list)
-
+        n_res = len(res)
+        res_dict = Counter(res)
+        succes = res_dict[True]
+        self.q.put("Uploaded {}/{}".format(succes, n_res))
         self.is_active = False
 
     def start(self):
